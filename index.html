@@ -321,7 +321,7 @@ footer{font-size:11px;color:#777;padding:0 14px 30px;max-width:780px;margin:0 au
   <label>동기화 PIN (4자리 이상, 기기들끼리 동일하게)</label>
   <input type="text" id="syncPin" placeholder="예: 4870" autocomplete="off">
   <label>서버 주소 (Worker URL)</label>
-  <input type="text" id="syncUrl" placeholder="https://nongji-calc-api.____.workers.dev">
+  <input type="text" id="syncUrl" value="https://nongji-calc-api.yjjn2005.workers.dev">
   <button class="btn" id="syncOn">동기화 켜기</button>
   <button class="btn ghost" id="syncOff">끄기</button>
   <div class="status" id="syncMsg">동기화 꺼짐 — 데이터는 이 기기에만 저장됩니다.</div>
@@ -513,7 +513,7 @@ loadLocal();applyInputs();
 FIELD_IDS.forEach(id=>{const el=$(id);if(!el)return;const h=()=>{captureInputs();saveLocal();calcTax();calcPen();calcSell();calcLease();};el.addEventListener('input',h);el.addEventListener('change',h);});
 $('todoReset').onclick=()=>{if(confirm('체크리스트를 초기화할까요?')){store.todo={};saveLocal();renderTodo();}};
 /* sync UI */
-$('syncPin').value=store.sync.pin||'';$('syncUrl').value=store.sync.url||'';
+$('syncPin').value=store.sync.pin||'';$('syncUrl').value=store.sync.url||'https://nongji-calc-api.yjjn2005.workers.dev';
 $('syncOn').onclick=()=>{const pin=$('syncPin').value.trim(),url=$('syncUrl').value.trim();
   if(pin.length<4||!/^https?:\/\//.test(url)){msg('syncMsg','PIN(4자리 이상)과 서버 주소를 입력하세요.','err');return;}
   store.sync={on:true,pin,url};saveLocal();setBadge();msg('syncMsg','동기화 켜짐 — 서버에서 확인 중…','ok');pullSync(true).then(()=>pushSync(true));};
