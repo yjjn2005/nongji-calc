@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0F2544">
+<title>농지 전수조사 대응 앱 — 가이드·양도세·이행강제금</title>
+<style>
+:root{--navy:#0F2544;--gold:#C6A15B;--paper:#F7F3EA;--ink:#1e1e1e;--red:#B23A3A;--green:#2F6B3A;--line:#e2ddd2}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;font-size:15px;word-break:keep-all}
+header{background:var(--navy);color:#fff;padding:18px 16px 14px}
+header .kick{color:var(--gold);font-size:11px;letter-spacing:2px;font-weight:700}
+header h1{margin:4px 0 2px;font-size:19px;line-height:1.3}
+header p{margin:0;font-size:12px;opacity:.75}
+main{max-width:780px;margin:0 auto;padding:12px 12px 60px}
+nav{display:flex;gap:5px;margin:4px 0 12px;position:sticky;top:0;background:var(--paper);padding:8px 0;z-index:9;flex-wrap:wrap}
+nav button{flex:1;min-width:70px;border:1px solid var(--navy);background:#fff;color:var(--navy);padding:8px 2px;border-radius:6px;font-weight:700;font-size:12.5px;cursor:pointer}
+nav button.on{background:var(--navy);color:#fff}
+section{display:none}section.on{display:block}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:15px;margin-bottom:12px}
+.card h2{margin:0 0 4px;font-size:15.5px;color:var(--navy);border-left:4px solid var(--gold);padding-left:8px}
+.card h3{margin:14px 0 4px;font-size:14px;color:var(--navy)}
+.card .hint{font-size:12px;color:#666;margin:0 0 10px}
+label{display:block;font-size:12px;color:#555;margin:10px 0 3px;font-weight:700}
+input[type=number],input[type=text],select{width:100%;padding:10px 12px;font-size:16px;border:1px solid #ccc;border-radius:6px;background:#fff}
+input:focus,select:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.won{font-size:11.5px;color:#888;margin-top:2px}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.cmp>div{border-radius:8px;padding:11px;border:1px solid var(--line)}
+.cmp .a{background:#f2f5fa}.cmp .b{background:#fbf0f0;border-color:#e6b9b9}
+.cmp .t{font-size:11.5px;font-weight:700;color:#555}
+.cmp .n{font-size:20px;font-weight:800;color:var(--navy);margin:2px 0}
+.cmp .b .n{color:var(--red)}
+.cmp .s{font-size:11.5px;color:#666}
+.diff{margin-top:10px;background:var(--navy);color:#fff;border-radius:8px;padding:11px 13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;font-size:13.5px}
+.diff b{color:#F2D89A;font-size:18px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+th{background:var(--navy);color:#fff;padding:6px;text-align:left;font-weight:700}
+td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+td.r,th.r{text-align:right;white-space:nowrap}
+td.k{font-weight:700;color:var(--navy)}
+tr.hl td{background:#FBF0F0;font-weight:700;color:var(--red)}
+tr.tot td{background:#F5EFE3;font-weight:700}
+.warn{border-left:4px solid var(--red);background:#fbf0f0;padding:9px 11px;font-size:12.5px;margin-top:10px;border-radius:0 6px 6px 0}
+.tip{border-left:4px solid var(--green);background:#eef6ef;padding:9px 11px;font-size:12.5px;margin-top:10px;border-radius:0 6px 6px 0}
+.lead{background:#F5EFE3;border-left:3px solid var(--gold);padding:8px 11px;margin:0 0 10px;font-weight:700;color:var(--navy);font-size:13px}
+details{border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:8px}
+details summary{cursor:pointer;font-weight:700;color:var(--navy);padding:11px 13px;font-size:14px;list-style:none}
+details summary::before{content:"▸ ";color:var(--gold)}
+details[open] summary::before{content:"▾ "}
+details .bd{padding:0 13px 12px;font-size:13px}
+details ul{margin:4px 0;padding-left:16px}
+.verdict{margin-top:12px;padding:11px 13px;border-radius:8px;font-weight:700;font-size:13.5px}
+.verdict.g{background:#eef6ef;color:var(--green);border:1px solid #b9d7be}
+.verdict.r{background:#fbf0f0;color:var(--red);border:1px solid #e6b9b9}
+.bar{height:20px;background:#eee;border-radius:4px;overflow:hidden;margin-top:4px}
+.bar span{display:block;height:100%;background:var(--red);color:#fff;font-size:10.5px;line-height:20px;padding-left:6px;white-space:nowrap}
+.chk{display:flex;gap:9px;align-items:flex-start;padding:9px 4px;border-bottom:1px solid var(--line);font-size:13.5px}
+.chk input{width:19px;height:19px;margin-top:2px;flex:none;accent-color:var(--green)}
+.chk.done label{text-decoration:line-through;color:#999}
+.chk label{margin:0;font-weight:400;font-size:13.5px;color:var(--ink)}
+.prog{height:9px;background:#eee;border-radius:5px;overflow:hidden;margin:6px 0 2px}
+.prog span{display:block;height:100%;background:var(--green)}
+.btn{display:inline-block;border:none;background:var(--navy);color:#fff;padding:10px 16px;border-radius:6px;font-weight:700;font-size:14px;cursor:pointer;margin:6px 6px 0 0}
+.btn.gold{background:var(--gold)}
+.btn.ghost{background:#fff;color:var(--navy);border:1px solid var(--navy)}
+.status{font-size:12px;margin-top:8px;color:#555}
+.status.ok{color:var(--green);font-weight:700}
+.status.err{color:var(--red);font-weight:700}
+.pill{display:inline-block;background:#F5EFE3;border:1px solid var(--gold);color:var(--navy);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;margin-left:6px}
+footer{font-size:11px;color:#777;padding:0 14px 30px;max-width:780px;margin:0 auto;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="kick">2026-2027 전국 농지 전수조사</div>
+  <h1>농지 전수조사 대응 앱 <span class="pill" id="syncBadge">동기화 꺼짐</span></h1>
+  <p>가이드 · 양도세 비교 · 이행강제금 · 매각 판단 · 임대 진단 · 대응 체크리스트</p>
+</header>
+<main>
+<nav>
+  <button class="on" data-t="guide">가이드</button>
+  <button data-t="tax">양도세</button>
+  <button data-t="pen">이행강제금</button>
+  <button data-t="sell">매각판단</button>
+  <button data-t="lease">임대진단</button>
+  <button data-t="todo">체크리스트</button>
+  <button data-t="set">설정</button>
+</nav>
+
+<!-- ============ 가이드 ============ -->
+<section id="guide" class="on">
+<div class="lead">2026년(1996년 이후 취득분) → 2027년(그 이전 취득분) 2단계 전수조사. AI·3년치 항공사진으로 확인하며, 적발 후에는 농지은행 위탁이 막히므로 조사 전에 정비하는 것이 유일한 전략이다.</div>
+<details open><summary>1. 조사 개요와 일정</summary><div class="bd">
+  <table>
+    <tr><th>단계</th><th>시기</th><th>대상</th><th>점검</th></tr>
+    <tr><td class="k">1단계</td><td>2026.5~12</td><td>1996.1.1 이후 취득 (약 1,049만 필지·136만ha)</td><td>소유 제한·무단 휴경·불법 임대차·불법 전용</td></tr>
+    <tr><td class="k">2단계</td><td>2027년</td><td>1996.1.1 이전 취득 (약 80만ha)</td><td>불법 전용·형상 훼손</td></tr>
+  </table>
+  <ul>
+    <li>1996년 이전 취득 농지는 휴경·임대는 면책되지만 <b>불법 전용(주차장·야적장·고물상)은 예외 없이 제재</b></li>
+    <li>도시지역 내 농지도 전용 절차 완료 전까지는 농지 — 나대지 방치 시 처분 대상</li>
+    <li>3년치 항공사진 + AI 판독: 조사 때만 작물 심는 편법 차단, 서류 불일치는 심층조사 자동 편입</li>
+    <li>기본조사 결과 위반 의심 27% — 불법 임대차 21.1%, 무단 휴경 11.6%, 불법 전용 9.0%</li>
+  </ul>
+</div></details>
+<details><summary>2. 자경 인정 기준</summary><div class="bd">
+  <ul>
+    <li>농업경영체 등록만으로 자경 인정 안 됨. <b>농작업 1/2 이상 자기 노동력</b> 투입을 소유자가 입증</li>
+    <li>증빙: 본인 명의 농약·비료·종자·면세유 영수증, 농협 수매·공판장 출하, 직불금·재해보험</li>
+    <li>세법상 재촌 요건: 소재지 동일·연접 시군구 또는 직선 30km 이내 거주</li>
+    <li>농업 외 소득 연 3,700만원 이상인 연도는 자경 기간에서 제외</li>
+  </ul>
+</div></details>
+<details><summary>3. 처분의무 → 처분명령 → 이행강제금</summary><div class="bd">
+  <ul>
+    <li>사유 발생 1년 내 처분의무 → 불이행 시 6개월 처분명령 → 불이행 시 <b>공시지가·감정가 중 높은 금액의 25% 매년</b> 부과</li>
+    <li>2026.8.28부터 처분명령은 지자체 <b>의무</b>. 배우자·자녀·본인 법인 등 특수관계인 매각 차단</li>
+    <li>불복은 30일 내 이의 → 비송사건 재판만 가능. 임차인 명도 거부는 정당한 사유로 거의 인정 안 됨</li>
+    <li>유일한 면책: 원상복구 + 자경 재개 또는 농어촌공사 매도위탁 → 3년 유예, 경과 시 처분의무 소멸</li>
+  </ul>
+</div></details>
+<details><summary>4. 농지를 임대 중이라면</summary><div class="bd">
+  <ul>
+    <li>임대 허용 사유: 1996년 이전 취득 / 상속 / 8년 자경 후 이농 / 60세 이상+5년 자경 / 농지은행 위탁 / 주말영농(1,000㎡ 미만). 그 외 임대는 전부 불법</li>
+    <li>조사는 <b>농지대장·경영체 등록·직불금 수령자·계약서·현장</b>의 일치를 대조</li>
+    <li>서면계약 의무, 임대차 3년 보장·자동갱신, 농지대장 60일 내 변경신고(과태료 300/500만)</li>
+    <li>직불금은 반드시 실경작자(임차인)가 수령 — 소유자 수령은 부정수급(환수+최대 5배 제재부가금)</li>
+  </ul>
+</div></details>
+<details><summary>5. 상속 농지 (고령 상속인 임대 사례)</summary><div class="bd">
+  <ul>
+    <li>상속 농지 임대는 <b>합법</b>. 쌀 등 현물 임대료 무방, 논밭 임대소득은 소득세 비과세</li>
+    <li>종전 규정: 비경작 상속인 1만㎡까지 소유, 초과분은 농지은행 위탁 필요</li>
+    <li>개정법(2026.8.28 시행)의 상속농지 위탁 의무는 <b>기존 상속인에게 미적용</b>(부칙 경과조치). 개정규정 시행 후 새로 상속받으면 위탁 의무</li>
+    <li>증여로 미리 넘기면 "상속" 사유가 사라져 즉시 불법 임대 — 상속이 유리</li>
+    <li>양도세: 피상속인 8년 재촌·자경 입증 시 임대 중이어도 사업용(도시지역 제외). 상속 3년 내 양도도 사업용. 농지은행 8년 위탁도 사업용</li>
+  </ul>
+</div></details>
+<details><summary>6. 2028년 양도세 강화</summary><div class="bd">
+  <table>
+    <tr><th>구분</th><th>2027년까지</th><th>2028년 이후</th></tr>
+    <tr><td class="k">중과세율</td><td>기본세율+10%p</td><td>기본세율+<b>20%p</b></td></tr>
+    <tr><td class="k">최고세율(지방세 포함)</td><td>60.5%</td><td><b>71.5%</b></td></tr>
+    <tr><td class="k">장기보유특별공제</td><td>최대 30%</td><td><b>폐지</b></td></tr>
+    <tr class="tot"><td class="k">15년·차익 2억</td><td>5,108만원</td><td>1억 407만원</td></tr>
+  </table>
+</div></details>
+<details><summary>7. 농지은행·매수청구</summary><div class="bd">
+  <ul>
+    <li>적발 <b>전</b> 농지은행 임대수탁 = 완전 면책, 수수료 전면 면제. 적발 후에는 위탁 불가</li>
+    <li>8년 이상 위탁 시 사업용 토지 인정 → 중과 회피</li>
+    <li>매수청구는 공시지가 기준(통상 시세의 60~70%) — 이행강제금 누적과 비교해 결정</li>
+    <li>신고포상금 연 1,500만원(10배 인상) — 구두 임대차는 숨을 곳이 없다</li>
+  </ul>
+</div></details>
+</section>
+
+<!-- ============ 양도세 ============ -->
+<section id="tax">
+<div class="card">
+  <h2>비사업용 농지 양도세 — 2027 vs 2028</h2>
+  <p class="hint">지방소득세 10% 포함. 입력값은 이 기기에 저장되고, 동기화를 켜면 다른 기기와 공유됩니다.</p>
+  <div class="row">
+    <div><label>양도가액 (원)</label><input type="number" id="t_sale" value="300000000" step="1000000"><div class="won" id="t_sale_w"></div></div>
+    <div><label>취득가액 (원)</label><input type="number" id="t_buy" value="100000000" step="1000000"><div class="won" id="t_buy_w"></div></div>
+  </div>
+  <div class="row">
+    <div><label>필요경비 (원)</label><input type="number" id="t_cost" value="0" step="100000"></div>
+    <div><label>보유기간 (년)</label><input type="number" id="t_years" value="15" min="0" max="60"></div>
+  </div>
+  <label>취득·판정 유형</label>
+  <select id="t_mode">
+    <option value="normal">일반 취득 — 비사업용</option>
+    <option value="inh_none">상속 — 특례 없음 (3년 경과·피상속인 자경 미입증)</option>
+    <option value="inh_3y">상속 — 상속개시일부터 3년 내 양도 (사업용)</option>
+    <option value="inh_8y">상속·증여 — 피상속인 8년 재촌·자경 입증 (사업용)</option>
+    <option value="bank8">농지은행 8년 이상 위탁 (사업용)</option>
+  </select>
+  <div class="won">상속·증여 취득은 취득가액에 상속·증여 당시 평가액, 보유기간에 상속·증여일부터의 기간 입력</div>
+  <div class="cmp">
+    <div class="a"><div class="t">현행 (2027년 매각까지)</div><div class="n" id="t_now">-</div><div class="s">+10%p · 장특공 최대 30%</div></div>
+    <div class="b"><div class="t">2028년 이후 매각</div><div class="n" id="t_new">-</div><div class="s">+20%p · 장특공 폐지</div></div>
+  </div>
+  <div class="diff"><span>2028년 이후 추가 부담</span><b id="t_diff">-</b></div>
+  <div class="tip" id="t_bizNote" style="display:none"></div>
+  <table>
+    <tr><th>항목</th><th class="r">2027년까지</th><th class="r">2028년 이후</th></tr>
+    <tr><td>양도차익</td><td class="r" id="t_g1"></td><td class="r" id="t_g2"></td></tr>
+    <tr><td>장기보유특별공제</td><td class="r" id="t_l1"></td><td class="r" id="t_l2"></td></tr>
+    <tr><td>기본공제</td><td class="r">2,500,000</td><td class="r">2,500,000</td></tr>
+    <tr><td>과세표준</td><td class="r" id="t_b1"></td><td class="r" id="t_b2"></td></tr>
+    <tr><td>기본세율 산출세액</td><td class="r" id="t_x1"></td><td class="r" id="t_x2"></td></tr>
+    <tr><td>비사업용 중과</td><td class="r" id="t_p1"></td><td class="r" id="t_p2"></td></tr>
+    <tr><td>지방소득세</td><td class="r" id="t_j1"></td><td class="r" id="t_j2"></td></tr>
+    <tr class="tot"><td>총 납부세액</td><td class="r" id="t_s1"></td><td class="r" id="t_s2"></td></tr>
+    <tr><td>실효세율</td><td class="r" id="t_e1"></td><td class="r" id="t_e2"></td></tr>
+  </table>
+  <div class="tip">사업용 인정 시(8년 자경·농지은행 8년 위탁 등) 예상 세액 <b id="t_biz"></b> — 중과 없음·장특공 유지. 8년 재촌·자경 감면(연 1억, 5년 2억 한도)은 별도.</div>
+</div>
+</section>
+
+<!-- ============ 이행강제금 ============ -->
+<section id="pen">
+<div class="card">
+  <h2>처분명령 불이행 이행강제금 누적</h2>
+  <p class="hint">공시지가·감정평가액 중 높은 금액의 25%가 이행 시까지 매년 부과됩니다.</p>
+  <div class="row">
+    <div><label>개별공시지가 합계 (원)</label><input type="number" id="p_gov" value="70000000" step="1000000"><div class="won" id="p_gov_w"></div></div>
+    <div><label>감정평가액 (원, 없으면 0)</label><input type="number" id="p_app" value="0" step="1000000"></div>
+  </div>
+  <div class="row">
+    <div><label>시세 (원)</label><input type="number" id="p_mkt" value="100000000" step="1000000"><div class="won" id="p_mkt_w"></div></div>
+    <div><label>미처분 연수 (년)</label><input type="number" id="p_years" value="5" min="1" max="20"></div>
+  </div>
+  <div class="cmp">
+    <div class="a"><div class="t">연간 이행강제금</div><div class="n" id="p_year">-</div><div class="s" id="p_base"></div></div>
+    <div class="b"><div class="t" id="p_tot_t">누적</div><div class="n" id="p_tot">-</div><div class="s" id="p_ratio"></div></div>
+  </div>
+  <div class="bar"><span id="p_bar"></span></div>
+  <div style="font-size:12px;color:#666;margin-top:4px" id="p_break"></div>
+  <table id="p_tbl"></table>
+  <div class="warn">불복은 고지 후 30일 내 이의제기 → 비송사건 재판만 가능. 임차인 명도 거부는 정당한 사유로 거의 인정되지 않습니다.</div>
+</div>
+</section>
+
+<!-- ============ 매각판단 ============ -->
+<section id="sell">
+<div class="card">
+  <h2>농어촌공사 매수청구 vs 시장 매각 대기</h2>
+  <p class="hint">공시지가로 즉시 정리 vs 이행강제금을 내며 시세 매각 대기 — 세후 실수령으로 비교.</p>
+  <div class="row">
+    <div><label>시세 (원)</label><input type="number" id="s_mkt" value="100000000" step="1000000"><div class="won" id="s_mkt_w"></div></div>
+    <div><label>개별공시지가 (원)</label><input type="number" id="s_gov" value="70000000" step="1000000"><div class="won" id="s_gov_w"></div></div>
+  </div>
+  <div class="row">
+    <div><label>감정평가액 (원, 없으면 0)</label><input type="number" id="s_app" value="0" step="1000000"></div>
+    <div><label>매각까지 예상 대기 (년)</label><input type="number" id="s_wait" value="3" min="0" max="20"></div>
+  </div>
+  <div class="row">
+    <div><label>대기 중 시세 변동률 (연 %)</label><input type="number" id="s_drift" value="-5" step="1"></div>
+    <div><label>취득가액 (원)</label><input type="number" id="s_buy" value="50000000" step="1000000"></div>
+  </div>
+  <label>보유기간 (년) / 대기 매각 시점</label>
+  <div class="row">
+    <input type="number" id="s_years" value="10" min="0">
+    <select id="s_when"><option value="now">2027년 이전</option><option value="new" selected>2028년 이후 (중과 강화)</option></select>
+  </div>
+  <div class="cmp">
+    <div class="a"><div class="t">A. 지금 매수청구</div><div class="n" id="s_a">-</div><div class="s" id="s_a_s"></div></div>
+    <div class="b"><div class="t" id="s_b_t">B. 대기 후 매각</div><div class="n" id="s_b">-</div><div class="s" id="s_b_s"></div></div>
+  </div>
+  <div class="verdict" id="s_v"></div>
+  <table>
+    <tr><th>항목</th><th class="r">A</th><th class="r">B</th></tr>
+    <tr><td>매각가</td><td class="r" id="s_r1a"></td><td class="r" id="s_r1b"></td></tr>
+    <tr><td>누적 이행강제금</td><td class="r">0</td><td class="r" id="s_r2b"></td></tr>
+    <tr><td>양도세</td><td class="r" id="s_r3a"></td><td class="r" id="s_r3b"></td></tr>
+    <tr class="tot"><td>세후 실수령</td><td class="r" id="s_r4a"></td><td class="r" id="s_r4b"></td></tr>
+  </table>
+</div>
+</section>
+
+<!-- ============ 임대진단 ============ -->
+<section id="lease">
+<div class="card">
+  <h2>임대 중인 농지 리스크 진단</h2>
+  <p class="hint">해당 항목을 선택하면 위법 여부·예상 결과·대응 순서를 판정합니다.</p>
+  <label>1. 임대 허용 사유 (농지법 제23조)</label>
+  <select id="l_why">
+    <option value="none">없음 — 1996년 이후 매매·증여 취득</option>
+    <option value="pre96">1996.1.1 이전 취득</option>
+    <option value="inherit">상속으로 취득</option>
+    <option value="leave">8년 이상 자경 후 이농</option>
+    <option value="age">60세 이상 + 5년 이상 자경</option>
+    <option value="bank">농지은행 임대수탁 중</option>
+    <option value="weekend">주말·체험영농 (1,000㎡ 미만)</option>
+  </select>
+  <div id="l_inhbox" style="display:none">
+    <label>1-1. 상속 농지 총면적 (㎡)</label><input type="number" id="l_area" value="5000" step="100">
+    <label>1-2. 상속 시점</label>
+    <select id="l_when"><option value="old">개정규정(위탁 의무) 시행 전 — 종전 규정</option><option value="new">개정규정 시행 후 — 위탁 의무</option></select>
+    <label>1-3. 임차인의 경작 형태</label>
+    <select id="l_sub"><option value="ok">임차인이 직접 경작</option><option value="sub">제3자에게 다시 맡김(전대)</option></select>
+  </div>
+  <label>2. 서면 임대차계약서</label>
+  <select id="l_contract"><option value="y">있음</option><option value="n">없음 (구두)</option></select>
+  <label>3. 농지대장 임대차 등재</label>
+  <select id="l_ledger"><option value="y">등재됨</option><option value="n">미등재 / 자경 기재</option></select>
+  <label>4. 직불금 수령자</label>
+  <select id="l_subsidy"><option value="tenant">임차인</option><option value="owner">소유자(본인)</option><option value="none">아무도 안 받음</option></select>
+  <label>5. 임차인의 이용 실태</label>
+  <select id="l_use"><option value="farm">정상 경작</option><option value="idle">휴경·방치</option><option value="convert">야적장·주차장 등 전용</option></select>
+  <label>6. 조사 진행 상태</label>
+  <select id="l_stage"><option value="before">통보 없음</option><option value="deep">심층조사 통보</option><option value="duty">처분의무 부과</option><option value="order">처분명령</option></select>
+  <div class="verdict" id="l_v"></div>
+  <table id="l_tbl"></table>
+  <div class="tip" id="l_act"></div>
+</div>
+</section>
+
+<!-- ============ 체크리스트 ============ -->
+<section id="todo">
+<div class="card">
+  <h2>전수조사 대응 체크리스트</h2>
+  <p class="hint">체크 상태는 저장되고, 동기화를 켜면 모든 기기에서 공유됩니다.</p>
+  <div class="prog"><span id="todoBar" style="width:0"></span></div>
+  <div style="font-size:12px;color:#666" id="todoTxt"></div>
+  <div id="todoList"></div>
+  <button class="btn ghost" id="todoReset">전체 초기화</button>
+</div>
+</section>
+
+<!-- ============ 설정 ============ -->
+<section id="set">
+<div class="card">
+  <h2>기기 간 동기화 (PIN)</h2>
+  <p class="hint">모든 기기에서 같은 PIN을 입력하면 계산기 입력값·진단 선택·체크리스트가 공유됩니다. 저장 서버는 Cloudflare Worker(무료)이며 README의 배포 절차를 따르면 됩니다.</p>
+  <label>동기화 PIN (4자리 이상, 기기들끼리 동일하게)</label>
+  <input type="text" id="syncPin" placeholder="예: 4870" autocomplete="off">
+  <label>서버 주소 (Worker URL)</label>
+  <input type="text" id="syncUrl" placeholder="https://nongji-calc-api.____.workers.dev">
+  <button class="btn" id="syncOn">동기화 켜기</button>
+  <button class="btn ghost" id="syncOff">끄기</button>
+  <div class="status" id="syncMsg">동기화 꺼짐 — 데이터는 이 기기에만 저장됩니다.</div>
+  <button class="btn gold" id="syncPush">지금 서버로 올리기</button>
+  <button class="btn gold" id="syncPull">서버에서 내려받기</button>
+</div>
+<div class="card">
+  <h2>수동 백업</h2>
+  <p class="hint">서버 없이 기기 간 이동하려면 내보내기 → 다른 기기에서 붙여넣기 → 가져오기.</p>
+  <button class="btn ghost" id="expBtn">내보내기 (복사)</button>
+  <button class="btn ghost" id="impBtn">가져오기 (붙여넣기)</button>
+  <div class="status" id="ioMsg"></div>
+</div>
+<div class="card">
+  <h2>기준·면책</h2>
+  <p style="font-size:12.5px;color:#555">농지법 개정(법률 제21798호, 2026.8.28 시행), 2026 세제개편안, 매일경제 2026.8.27 보도 기준. 세율·공제는 확정 법령에 따라 달라질 수 있으며, 개별 사안은 세무사·변호사 확인이 필요합니다. · 유앤김패밀리</p>
+</div>
+</section>
+</main>
+<footer>농지 전수조사 대응 앱 · 유앤김패밀리</footer>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString('ko-KR');
+const kor=n=>{n=Math.round(n);const sign=n<0?'-':'';n=Math.abs(n);if(n<1e4)return sign+fmt(n)+'원';const eok=Math.floor(n/1e8),man=Math.round((n%1e8)/1e4);return sign+(eok?eok+'억 ':'')+(man?fmt(man)+'만':'')+'원'};
+const BR=[[14e6,.06,0],[50e6,.15,1.26e6],[88e6,.24,5.76e6],[150e6,.35,15.44e6],[300e6,.38,19.94e6],[500e6,.40,25.94e6],[1e9,.42,35.94e6],[Infinity,.45,65.94e6]];
+const basic=tb=>{for(const[l,r,d]of BR)if(tb<=l)return Math.max(0,tb*r-d)};
+const ltd=y=>y>=3?Math.min(.30,Math.floor(y)*.02):0;
+function capgain(gain,years,mode){
+  if(gain<=0)return{gain,ltd:0,tb:0,x:0,p:0,j:0,sum:0};
+  const rate=mode==='new'?0:ltd(years);
+  const l=gain*rate,tb=Math.max(0,gain-l-2.5e6),x=basic(tb);
+  const p=mode==='now'?tb*.10:mode==='new'?tb*.20:0;
+  const j=(x+p)*.1;
+  return{gain,ltd:l,tb,x,p,j,sum:x+p+j};
+}
+/* ---------- storage / sync ---------- */
+const KEY='nongji-calc-v1';
+let store={inputs:{},todo:{},sync:{on:false,pin:'',url:''},ts:0};
+function loadLocal(){try{const s=localStorage.getItem(KEY);if(s)store=Object.assign(store,JSON.parse(s));}catch(e){}}
+function saveLocal(){store.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}scheduleSync();}
+const FIELD_IDS=['t_sale','t_buy','t_cost','t_years','t_mode','p_gov','p_app','p_mkt','p_years','s_mkt','s_gov','s_app','s_wait','s_drift','s_buy','s_years','s_when','l_why','l_area','l_when','l_sub','l_contract','l_ledger','l_subsidy','l_use','l_stage'];
+function captureInputs(){FIELD_IDS.forEach(id=>{const el=$(id);if(el)store.inputs[id]=el.value;});}
+function applyInputs(){FIELD_IDS.forEach(id=>{const el=$(id);if(el&&store.inputs[id]!==undefined)el.value=store.inputs[id];});}
+/* ---------- sync (PIN + worker) ---------- */
+let syncTimer=null,syncBusy=false;
+function syncEndpoint(){const u=(store.sync.url||'').replace(/\/+$/,'');return u&&store.sync.pin?u+'/sync/'+encodeURIComponent(store.sync.pin):null;}
+function setBadge(){const b=$('syncBadge');if(store.sync.on){b.textContent='동기화 켜짐';b.style.background='#EEF6EF';b.style.borderColor='#2F6B3A';b.style.color='#2F6B3A';}else{b.textContent='동기화 꺼짐';b.style.background='#F5EFE3';b.style.borderColor='#C6A15B';b.style.color='#0F2544';}}
+function scheduleSync(){if(!store.sync.on)return;clearTimeout(syncTimer);syncTimer=setTimeout(pushSync,1500);}
+async function pushSync(quiet){const ep=syncEndpoint();if(!ep||syncBusy)return;syncBusy=true;
+  try{const r=await fetch(ep,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({inputs:store.inputs,todo:store.todo,ts:store.ts})});
+    if(!r.ok)throw new Error(r.status);msg('syncMsg','서버 저장 완료 ('+new Date().toLocaleTimeString('ko-KR')+')','ok');
+  }catch(e){if(!quiet)msg('syncMsg','서버 저장 실패 — 주소·PIN·네트워크 확인','err');}
+  syncBusy=false;}
+async function pullSync(auto){const ep=syncEndpoint();if(!ep)return;
+  try{const r=await fetch(ep);if(r.status===404){if(!auto)msg('syncMsg','서버에 아직 데이터가 없습니다. "지금 서버로 올리기"를 먼저 누르세요.','err');return;}
+    if(!r.ok)throw new Error(r.status);const d=await r.json();
+    if(d&&d.ts&&(!auto||d.ts>store.ts)){store.inputs=d.inputs||{};store.todo=d.todo||{};store.ts=d.ts;
+      try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}
+      applyInputs();renderTodo();calcTax();calcPen();calcSell();calcLease();
+      msg('syncMsg','서버 데이터를 받아왔습니다 ('+new Date(d.ts).toLocaleString('ko-KR')+')','ok');}
+    else if(!auto)msg('syncMsg','이 기기가 최신 상태입니다.','ok');
+  }catch(e){if(!auto)msg('syncMsg','내려받기 실패 — 주소·PIN·네트워크 확인','err');}}
+function msg(id,t,cls){const el=$(id);el.textContent=t;el.className='status '+(cls||'');}
+/* ---------- tax ---------- */
+function wonLabel(id){const el=$(id+'_w');if(el)el.textContent=kor(+$(id).value||0);}
+function calcTax(){
+  ['t_sale','t_buy'].forEach(wonLabel);
+  const gain=(+$('t_sale').value||0)-(+$('t_buy').value||0)-(+$('t_cost').value||0);
+  const y=+$('t_years').value||0,mode=$('t_mode').value;
+  const biz=mode==='inh_3y'||mode==='inh_8y'||mode==='bank8';
+  const a=capgain(gain,y,biz?'biz':'now'),b=capgain(gain,y,biz?'biz':'new'),c=capgain(gain,y,'biz');
+  $('t_now').textContent=kor(a.sum);$('t_new').textContent=kor(b.sum);
+  $('t_diff').textContent='+'+kor(b.sum-a.sum)+(a.sum&&b.sum>a.sum?' ('+Math.round((b.sum/a.sum-1)*100)+'%↑)':'');
+  $('t_bizNote').style.display=biz?'block':'none';
+  $('t_bizNote').textContent=biz?'사업용 인정 — 중과 없음, 장특공 유지 (2028년 이후에도 세액 동일)':'';
+  const set=(k,v1,v2)=>{$('t_'+k+'1').textContent=v1;$('t_'+k+'2').textContent=v2};
+  set('g',fmt(gain),fmt(gain));
+  set('l','-'+fmt(a.ltd)+' ('+Math.round((biz?ltd(y):ltd(y))*100)+'%)',biz?'-'+fmt(b.ltd)+' ('+Math.round(ltd(y)*100)+'%)':'0 (폐지)');
+  set('b',fmt(a.tb),fmt(b.tb));set('x',fmt(a.x),fmt(b.x));set('p',fmt(a.p),fmt(b.p));set('j',fmt(a.j),fmt(b.j));set('s',fmt(a.sum),fmt(b.sum));
+  set('e',gain>0?(a.sum/gain*100).toFixed(1)+'%':'-',gain>0?(b.sum/gain*100).toFixed(1)+'%':'-');
+  $('t_biz').textContent=kor(c.sum);
+}
+/* ---------- penalty ---------- */
+function calcPen(){
+  ['p_gov','p_mkt'].forEach(wonLabel);
+  const gov=+$('p_gov').value||0,app=+$('p_app').value||0,mkt=+$('p_mkt').value||0,yrs=Math.max(1,+$('p_years').value||1);
+  const base=Math.max(gov,app),yr=base*.25;
+  $('p_year').textContent=kor(yr);$('p_base').textContent='기준가액 '+kor(base)+' × 25%'+(app>gov?' (감정가)':' (공시지가)');
+  $('p_tot_t').textContent=yrs+'년 누적';$('p_tot').textContent=kor(yr*yrs);
+  const ratio=mkt?yr*yrs/mkt*100:0;$('p_ratio').textContent=mkt?'시세의 '+ratio.toFixed(0)+'%':'';
+  $('p_bar').style.width=Math.min(100,ratio)+'%';$('p_bar').textContent=ratio.toFixed(0)+'%';
+  $('p_break').textContent=mkt&&yr?'시세 전액 소진까지 약 '+(mkt/yr).toFixed(1)+'년':'';
+  const t=$('p_tbl');t.innerHTML='<tr><th>연차</th><th class="r">당해 부과</th><th class="r">누적</th><th class="r">시세 대비</th></tr>';
+  for(let i=1;i<=yrs;i++){const cum=yr*i,r=mkt?cum/mkt*100:0;const tr=document.createElement('tr');if(r>=100)tr.className='hl';
+    tr.innerHTML='<td>'+i+'년차</td><td class="r">'+fmt(yr)+'</td><td class="r">'+fmt(cum)+'</td><td class="r">'+r.toFixed(0)+'%</td>';t.appendChild(tr);}
+}
+/* ---------- sell ---------- */
+function calcSell(){
+  ['s_mkt','s_gov'].forEach(wonLabel);
+  const mkt=+$('s_mkt').value||0,gov=+$('s_gov').value||0,app=+$('s_app').value||0,wait=Math.max(0,+$('s_wait').value||0);
+  const drift=(+$('s_drift').value||0)/100,buy=+$('s_buy').value||0,yrs=+$('s_years').value||0,when=$('s_when').value;
+  const priceA=Math.min(gov,mkt)||gov;
+  const taxA=capgain(priceA-buy,yrs,'now').sum,netA=priceA-taxA;
+  const priceB=mkt*Math.pow(1+drift,wait);
+  const pen=Math.max(gov,app)*.25*wait;
+  const taxB=capgain(priceB-buy,yrs+wait,when==='new'?'new':'now').sum;
+  const netB=priceB-pen-taxB;
+  $('s_a').textContent=kor(netA);$('s_a_s').textContent='매각가 '+kor(priceA)+' − 양도세 '+kor(taxA);
+  $('s_b_t').textContent='B. '+wait+'년 후 매각';$('s_b').textContent=kor(netB);
+  $('s_b_s').textContent='매각가 '+kor(priceB)+' − 강제금 '+kor(pen)+' − 양도세 '+kor(taxB);
+  const d=netA-netB,v=$('s_v');
+  if(Math.abs(d)<1e5){v.className='verdict g';v.textContent='두 선택의 세후 실수령이 사실상 같습니다.'}
+  else if(d>0){v.className='verdict g';v.textContent='지금 매수청구가 '+kor(d)+' 유리합니다.'}
+  else{v.className='verdict r';v.textContent='대기 매각이 '+kor(-d)+' 유리하지만, '+wait+'년 내 매수자가 나타난다는 가정에 달려 있습니다.'}
+  $('s_r1a').textContent=fmt(priceA);$('s_r1b').textContent=fmt(priceB);$('s_r2b').textContent=fmt(pen);
+  $('s_r3a').textContent=fmt(taxA);$('s_r3b').textContent=fmt(taxB);$('s_r4a').textContent=fmt(netA);$('s_r4b').textContent=fmt(netB);
+}
+/* ---------- lease ---------- */
+function calcLease(){
+  const why=$('l_why').value,c=$('l_contract').value,lg=$('l_ledger').value,s=$('l_subsidy').value,u=$('l_use').value,st=$('l_stage').value;
+  const rows=[];let bad=0;
+  $('l_inhbox').style.display=why==='inherit'?'block':'none';
+  if(why==='inherit'){
+    const area=+$('l_area').value||0,when=$('l_when').value,sub=$('l_sub').value;
+    if(when==='new'){rows.push(['개정규정 시행 후 상속 — 사적 임대 불가','직접 경작하지 않으면 농지은행 위탁 의무. 미위탁 시 1년 내 처분의무 → 처분명령 → 이행강제금. 기존 임차인은 농어촌공사 경유 재계약 가능']);bad+=3;}
+    else if(area>10000){rows.push(['상속 농지 1만㎡ 초과 ('+fmt(area)+'㎡)','종전 규정상 비경작 상속인은 1만㎡까지만 소유. 초과 '+fmt(area-10000)+'㎡는 농지은행 위탁(수수료 면제) 없이는 처분의무 대상']);bad+=2;}
+    else rows.push(['상속 농지 직접 임대 — 합법','종전 규정(경과조치) 적용. 서면계약·농지대장 등재·직불금 임차인 명의를 갖추면 조사 통과. 쌀 등 현물 임대료 무방, 논밭 임대소득 비과세']);
+    if(sub==='sub'){rows.push(['임차인의 전대(轉貸)','전대 금지 위반. 실제 경작자와 직접 계약 재체결 필요, 소유자 관리 책임 추궁']);bad++;}
+    rows.push(['세법 — 임대 기간은 자경 아님','피상속인 8년 재촌·자경 입증 시 임대 중이어도 사업용. 미입증 시 비사업용 → 2028년부터 +20%p·장특공 폐지. 양도세 탭에서 비교']);
+  }
+  if(why==='none'){rows.push(['허용 사유 없는 임대 = 불법 임대차','처분의무 → 처분명령 → 매년 25% 이행강제금. 임대인 2천만원 이하 벌금, 허위 농취증이면 5년 이하 징역/토지가액 벌금']);bad+=3;}
+  if(c==='n'){rows.push(['서면계약 없음','서면계약 의무 위반. 임대 사실 입증 불가로 불리하게 추정, 임차인 위반 시 구상 근거 없음']);bad++;}
+  if(lg==='n'){rows.push(['농지대장 미등재 / 자경 기재','60일 내 변경신고 위반 과태료. 자경 기재 + 타인 경작 확인 시 심층조사 자동 편입']);bad++;}
+  if(s==='owner'){rows.push(['소유자 직불금 수령','부정수급 — 전액 환수 + 최대 5배 제재부가금 + 등록 제한']);bad+=2;}
+  if(u==='idle'){rows.push(['임차인 휴경·방치','3년치 항공사진으로 묵은 휴경 판정. 처분의무는 소유자']);bad+=2;}
+  if(u==='convert'){rows.push(['임차인 불법 전용','원상회복명령은 소유자에게도 부과, 이행강제금은 소유자 단독 부담. 명도 거부는 정당한 사유 불인정']);bad+=3;}
+  if(why!=='none'&&why!=='bank'&&why!=='inherit'){rows.push(['허용 사유 입증 자료 준비','등기부(취득일)·8년 자경 증빙·연령 증빙 등. 세법상 임대 기간은 비자경 → 비사업용 가능성']);}
+  const t=$('l_tbl');t.innerHTML='<tr><th>발견된 문제</th><th>예상 결과</th></tr>';
+  if(!rows.length)t.innerHTML+='<tr><td colspan="2">확인된 위반 사항 없음</td></tr>';
+  rows.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML='<td><b>'+r[0]+'</b></td><td>'+r[1]+'</td>';t.appendChild(tr);});
+  const v=$('l_v');
+  if(why==='bank'){v.className='verdict g';v.textContent='농지은행 위탁 중 — 합법. 8년 이상 유지 시 사업용 토지 인정.';}
+  else if(bad>=3){v.className='verdict r';v.textContent='고위험 — 처분명령·이행강제금 대상이 될 가능성이 높습니다.';}
+  else if(bad>0){v.className='verdict r';v.textContent='정비 필요 — 서류 불일치가 심층조사 트리거가 됩니다.';}
+  else if(why==='inherit'){v.className='verdict g';v.textContent='상속 농지 임대 — 합법. 계약서·농지대장·직불금·경영체 정합성만 유지하면 됩니다. 증여로 넘기면 임대 사유 소멸.';}
+  else{v.className='verdict g';v.textContent='허용 사유 있는 임대 — 입증 서류와 서류 일치 상태를 유지하십시오.';}
+  let a='';
+  if(st==='before'||st==='deep'){
+    a=why==='none'?'<b>지금 즉시</b> 농지은행 임대수탁 전환(수수료 면제). 처분의무 부과 후에는 위탁이 차단됩니다.':'서면계약 작성, 농지대장 등재, 직불금 임차인 명의, 허용 사유 증빙 준비. 계약서에 용도제한·즉시해지·원상복구·행정처분 임차인 부담 조항 명시.';
+    if(u==='convert')a+='<br>내용증명(해지·원상복구) → 명도소송·점유이전금지가처분 → 소유자 선복구 후 구상. 전 과정을 문서화.';
+  }else if(st==='duty'){a='농지은행 위탁 불가. 1년 내 제3의 농업인에게 매각(특수관계인 불가)하거나, 원상복구 + 자경 재개 또는 농어촌공사 매도위탁으로 <b>3년 유예</b> 신청.';}
+  else{a='6개월 내 매각 실패 시 매년 25% 부과. 매각판단 탭에서 매수청구와 대기 매각의 손익을 비교하십시오. 이의는 30일 내, 비송사건 재판만 가능.';}
+  $('l_act').innerHTML='<b>대응 순서</b> — '+a;
+}
+/* ---------- checklist ---------- */
+const TODO=[
+ ['필지별 현황표 작성 — 취득 시점(1996 전/후)·지목·실제 이용·임대 형태·도시지역 여부','기초'],
+ ['불법 전용 상태(컨테이너·야적·주차장 등) 원상복구','긴급'],
+ ['자경 불가 농지 → 농지은행 임대수탁 신청 (적발 전, 수수료 면제)','긴급'],
+ ['자경 농지 증빙 정리 — 농약·비료·면세유 영수증, 수매·출하 내역, 직불금','자경'],
+ ['임대차 서면계약 작성 (용도제한·즉시해지·원상복구·전대 금지 조항)','임대'],
+ ['농지대장 임대차 변경신고 (60일 내)','임대'],
+ ['직불금 수령자를 실경작자(임차인)로 정리','임대'],
+ ['소유자 명의 농업경영체 등록 정리 (실경작자와 일치)','임대'],
+ ['상속 농지 총면적 확인 — 1만㎡ 초과분 농지은행 위탁','상속'],
+ ['피상속인 8년 재촌·자경 증빙 수집 (농지원부·직불금·조합원·수매·마을 확인서)','상속'],
+ ['매각 계획 검토 — 2027년 내 매각 vs 장기 보유(위탁 8년) 세액 비교','세금'],
+ ['상속·증여 시 감정평가 신고 검토 (취득가액 상향)','세금'],
+ ['임차인 위반 징후 시 내용증명·명도소송·가처분 준비 서류 확보','분쟁'],
+ ['위반 통보·처분 관련 공문 전부 보관 (30일 이의 기한 관리)','분쟁']
+];
+function renderTodo(){
+  const box=$('todoList');box.innerHTML='';let done=0;
+  TODO.forEach((it,i)=>{
+    const id='td'+i,ck=!!store.todo[id];if(ck)done++;
+    const d=document.createElement('div');d.className='chk'+(ck?' done':'');
+    d.innerHTML='<input type="checkbox" id="'+id+'"'+(ck?' checked':'')+'><label for="'+id+'">['+it[1]+'] '+it[0]+'</label>';
+    d.querySelector('input').addEventListener('change',e=>{store.todo[id]=e.target.checked;saveLocal();renderTodo();});
+    box.appendChild(d);
+  });
+  $('todoBar').style.width=(done/TODO.length*100)+'%';
+  $('todoTxt').textContent=done+' / '+TODO.length+' 완료';
+}
+/* ---------- wiring ---------- */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button,main>section').forEach(e=>e.classList.remove('on'));b.classList.add('on');$(b.dataset.t).classList.add('on');});
+loadLocal();applyInputs();
+FIELD_IDS.forEach(id=>{const el=$(id);if(!el)return;const h=()=>{captureInputs();saveLocal();calcTax();calcPen();calcSell();calcLease();};el.addEventListener('input',h);el.addEventListener('change',h);});
+$('todoReset').onclick=()=>{if(confirm('체크리스트를 초기화할까요?')){store.todo={};saveLocal();renderTodo();}};
+/* sync UI */
+$('syncPin').value=store.sync.pin||'';$('syncUrl').value=store.sync.url||'';
+$('syncOn').onclick=()=>{const pin=$('syncPin').value.trim(),url=$('syncUrl').value.trim();
+  if(pin.length<4||!/^https?:\/\//.test(url)){msg('syncMsg','PIN(4자리 이상)과 서버 주소를 입력하세요.','err');return;}
+  store.sync={on:true,pin,url};saveLocal();setBadge();msg('syncMsg','동기화 켜짐 — 서버에서 확인 중…','ok');pullSync(true).then(()=>pushSync(true));};
+$('syncOff').onclick=()=>{store.sync.on=false;saveLocal();setBadge();msg('syncMsg','동기화 꺼짐 — 데이터는 이 기기에만 저장됩니다.','');};
+$('syncPush').onclick=()=>{if(!store.sync.on){msg('syncMsg','먼저 동기화를 켜세요.','err');return;}captureInputs();store.ts=Date.now();pushSync();};
+$('syncPull').onclick=()=>{if(!store.sync.on){msg('syncMsg','먼저 동기화를 켜세요.','err');return;}pullSync(false);};
+/* export/import */
+$('expBtn').onclick=async()=>{captureInputs();const s=JSON.stringify(store);
+  try{await navigator.clipboard.writeText(s);msg('ioMsg','클립보드에 복사되었습니다. 다른 기기의 "가져오기"에 붙여넣으세요.','ok');}
+  catch(e){prompt('아래 내용을 복사하세요',s);}};
+$('impBtn').onclick=()=>{const s=prompt('내보내기 문자열을 붙여넣으세요');if(!s)return;
+  try{const d=JSON.parse(s);store.inputs=d.inputs||{};store.todo=d.todo||{};saveLocal();applyInputs();renderTodo();calcTax();calcPen();calcSell();calcLease();msg('ioMsg','가져오기 완료.','ok');}
+  catch(e){msg('ioMsg','형식이 올바르지 않습니다.','err');}};
+setBadge();renderTodo();calcTax();calcPen();calcSell();calcLease();
+if(store.sync.on){msg('syncMsg','동기화 켜짐','ok');pullSync(true);}
+</script>
+</body>
+</html>
