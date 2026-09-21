@@ -5,105 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>토지이용계획 조회</title>
 <style>
-  :root {
-    --navy: #0F2544;
-    --gold: #C6A15B;
-    --bg: #F7F6F3;
-    --border: #E0DCD3;
-  }
-  * { box-sizing: border-box; }
-  body {
-    font-family: '맑은 고딕', 'Malgun Gothic', sans-serif;
-    background: var(--bg);
-    margin: 0;
-    padding: 24px 16px 60px;
-    color: #1a1a1a;
-  }
-  .wrap { max-width: 720px; margin: 0 auto; }
-  h1 {
-    color: var(--navy);
-    font-size: 22px;
-    border-bottom: 3px solid var(--gold);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-  }
-  .search-box {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-  .search-box input {
-    flex: 1;
-    padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 15px;
-  }
-  .search-box button {
-    padding: 12px 20px;
-    background: var(--navy);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 15px;
-    cursor: pointer;
-  }
-  .search-box button:disabled { opacity: 0.5; }
-  .card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 16px;
-  }
-  .card h2 {
-    font-size: 16px;
-    color: var(--navy);
-    margin: 0 0 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-  table { width: 100%; border-collapse: collapse; }
-  table td { padding: 8px 6px; font-size: 14px; vertical-align: top; }
-  table td:first-child {
-    width: 120px;
-    color: #666;
-    background: #FAF9F6;
-    font-weight: 600;
-  }
-  .badge {
-    display: inline-block;
-    background: var(--gold);
-    color: white;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 13px;
-    margin: 2px 4px 2px 0;
-  }
-  .status { padding: 12px; border-radius: 6px; font-size: 14px; margin-bottom: 16px; }
-  .status.loading { background: #FFF7E6; color: #8A6D00; }
-  .status.error { background: #FDECEC; color: #B3261E; }
-  .status.hidden { display: none; }
-  .note {
-    font-size: 12px;
-    color: #888;
-    margin-top: 24px;
-    line-height: 1.6;
-    border-top: 1px solid var(--border);
-    padding-top: 12px;
-  }
-  pre {
-    background: #F2F0EA;
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    overflow-x: auto;
-    white-space: pre-wrap;
-  }
+  :root { --navy:#0F2544; --gold:#C6A15B; --bg:#F7F6F3; --border:#E0DCD3; }
+  * { box-sizing:border-box; }
+  body { font-family:'맑은 고딕','Malgun Gothic',sans-serif; background:var(--bg); margin:0; padding:24px 16px 60px; color:#1a1a1a; }
+  .wrap { max-width:720px; margin:0 auto; }
+  h1 { color:var(--navy); font-size:22px; border-bottom:3px solid var(--gold); padding-bottom:10px; margin-bottom:20px; }
+  .search-box { display:flex; gap:8px; margin-bottom:20px; }
+  .search-box input { flex:1; padding:12px 14px; border:1px solid var(--border); border-radius:6px; font-size:15px; }
+  .search-box button { padding:12px 20px; background:var(--navy); color:#fff; border:none; border-radius:6px; font-size:15px; cursor:pointer; }
+  .search-box button:disabled { opacity:.5; }
+  .card { background:#fff; border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:16px; }
+  .card h2 { font-size:16px; color:var(--navy); margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  table { width:100%; border-collapse:collapse; }
+  table td { padding:8px 6px; font-size:14px; vertical-align:top; }
+  table td:first-child { width:120px; color:#666; background:#FAF9F6; font-weight:600; }
+  .badge { display:inline-block; background:var(--gold); color:#fff; padding:3px 10px; border-radius:12px; font-size:13px; margin:2px 4px 2px 0; }
+  .status { padding:12px; border-radius:6px; font-size:14px; margin-bottom:16px; }
+  .status.loading { background:#FFF7E6; color:#8A6D00; }
+  .status.error { background:#FDECEC; color:#B3261E; }
+  .status.hidden { display:none; }
+  .note { font-size:12px; color:#888; margin-top:24px; line-height:1.6; border-top:1px solid var(--border); padding-top:12px; }
+  pre { background:#F2F0EA; padding:10px; border-radius:6px; font-size:12px; overflow-x:auto; white-space:pre-wrap; }
+  .back { display:inline-block; margin-bottom:14px; color:var(--navy); font-size:14px; text-decoration:none; }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <a class="back" href="index.html">← 농지 계산기로 돌아가기</a>
   <h1>토지이용계획 조회</h1>
 
   <div class="search-box">
@@ -112,7 +40,6 @@
   </div>
 
   <div id="status" class="status hidden"></div>
-
   <div id="resultArea"></div>
 
   <div class="note">
@@ -124,8 +51,6 @@
 
 <script>
 const VWORLD_KEY = "F6799A65-7960-4D2E-AA41-1BACB4EAEB1D";
-// 국토교통부 토지이용규제정보서비스는 CORS 문제로 브라우저 직접 호출이 막힐 수 있어
-// Cloudflare Worker 프록시를 거칩니다. 실제 배포된 nongji-calc-api 주소로 교체하세요.
 const REGULATION_PROXY_BASE = "https://nongji-calc-api.yjjn2005.workers.dev";
 
 const statusEl = document.getElementById('status');
@@ -133,110 +58,102 @@ const resultArea = document.getElementById('resultArea');
 const searchBtn = document.getElementById('searchBtn');
 const addrInput = document.getElementById('addrInput');
 
-function setStatus(type, msg) {
-  statusEl.className = 'status ' + type;
-  statusEl.textContent = msg;
-}
-function clearStatus() {
-  statusEl.className = 'status hidden';
+function setStatus(type, msg){ statusEl.className='status '+type; statusEl.textContent=msg; }
+function clearStatus(){ statusEl.className='status hidden'; }
+
+// ---- JSONP 호출 유틸 (브이월드는 브라우저 fetch 대신 JSONP callback 방식 지원) ----
+let jsonpSeq = 0;
+function jsonp(url, params, timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const cbName = "__vworld_cb_" + (++jsonpSeq) + "_" + Date.now();
+    const script = document.createElement("script");
+    const u = new URL(url);
+    for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
+    u.searchParams.set("callback", cbName);
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("응답 시간 초과 (브이월드 서버가 응답하지 않습니다)"));
+    }, timeoutMs);
+
+    function cleanup(){
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error("스크립트 로드 실패 (네트워크 차단 또는 URL/키 오류)")); };
+    script.src = u.toString();
+    document.head.appendChild(script);
+  });
 }
 
+// 1) 지번주소 -> 필지 검색 (PNU, 좌표)
 async function searchParcel(address) {
-  const url = new URL("https://api.vworld.kr/req/search");
-  url.searchParams.set("service", "search");
-  url.searchParams.set("request", "search");
-  url.searchParams.set("version", "2.0");
-  url.searchParams.set("crs", "EPSG:4326");
-  url.searchParams.set("query", address);
-  url.searchParams.set("type", "address");
-  url.searchParams.set("category", "PARCEL");
-  url.searchParams.set("format", "json");
-  url.searchParams.set("key", VWORLD_KEY);
-
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`주소 검색 실패 (HTTP ${res.status})`);
-  const data = await res.json();
+  const data = await jsonp("https://api.vworld.kr/req/search", {
+    service: "search", request: "search", version: "2.0", crs: "EPSG:4326",
+    query: address, type: "address", category: "PARCEL", format: "json", key: VWORLD_KEY
+  });
   if (data.response?.status !== "OK") {
-    throw new Error(`주소를 찾을 수 없습니다: ${data.response?.status || '알 수 없는 오류'}`);
+    throw new Error("주소를 찾을 수 없습니다: " + (data.response?.status || "알 수 없는 오류") +
+      (data.response?.error ? " - " + JSON.stringify(data.response.error) : ""));
   }
   return data.response.result?.items || [];
 }
 
+// 2) 좌표 -> 용도지역지구 (LT_C_UQ111 레이어, 속성만)
 async function getLandUseZone(x, y) {
-  const url = new URL("https://api.vworld.kr/req/data");
-  url.searchParams.set("service", "data");
-  url.searchParams.set("request", "GetFeature");
-  url.searchParams.set("data", "LT_C_UQ111");
-  url.searchParams.set("key", VWORLD_KEY);
-  url.searchParams.set("format", "json");
-  url.searchParams.set("crs", "EPSG:4326");
-  url.searchParams.set("geomFilter", `POINT(${x} ${y})`);
-  url.searchParams.set("geometry", "false");
-
-  const res = await fetch(url.toString());
-  if (!res.ok) return null;
-  const data = await res.json();
+  const data = await jsonp("https://api.vworld.kr/req/data", {
+    service: "data", request: "GetFeature", data: "LT_C_UQ111", key: VWORLD_KEY,
+    format: "json", crs: "EPSG:4326", geomFilter: `POINT(${x} ${y})`, geometry: "false"
+  });
   const features = data.response?.result?.featureCollection?.features;
-  return (features && features.length > 0) ? features[0].properties : null;
+  return (features && features.length > 0) ? features.map(f => f.properties) : null;
 }
 
-async function searchActivityCode(landUseNm) {
-  const url = new URL(REGULATION_PROXY_BASE + "/landuse/search-act");
-  url.searchParams.set("landUseNm", landUseNm);
-  const res = await fetch(url.toString());
-  if (!res.ok) return null;
-  return await res.json();
-}
+function esc(s){ return String(s ?? '-').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-function renderResult({ address, parcel, zone }) {
-  let html = '';
+function renderResult({ address, parcel, zones }) {
+  let html = `<div class="card"><h2>기본 정보</h2><table>
+    <tr><td>소재지</td><td>${esc(address)}</td></tr>
+    <tr><td>검색 결과</td><td>${esc(parcel.title)}</td></tr>
+    <tr><td>PNU</td><td>${esc(parcel.id)}</td></tr>
+    <tr><td>좌표(경도, 위도)</td><td>${esc(parcel.point?.x)}, ${esc(parcel.point?.y)}</td></tr>
+  </table></div>`;
 
-  html += `<div class="card">
-    <h2>기본 정보</h2>
-    <table>
-      <tr><td>소재지</td><td>${address}</td></tr>
-      <tr><td>PNU</td><td>${parcel.id || '-'}</td></tr>
-      <tr><td>지목</td><td>${parcel.title || parcel.address?.parcel || '-'}</td></tr>
-    </table>
-  </div>`;
-
-  html += `<div class="card">
-    <h2>용도지역·지구 등 지정 여부</h2>`;
-  if (zone) {
-    html += `<pre>${JSON.stringify(zone, null, 2)}</pre>
-    <p style="font-size:13px;color:#888;">※ 위 원본 응답에서 용도지역 명칭 필드(예: prposArea1Nm, uname 등)를 확인해 화면에 배지 형태로 다듬을 예정입니다.</p>`;
+  html += `<div class="card"><h2>용도지역·지구 등 지정 여부</h2>`;
+  if (zones && zones.length) {
+    // 흔한 필드명 후보들을 먼저 배지로 시도, 그 외는 원본 표시
+    const nameKeys = ["uname","prposArea1Nm","prpos_area_1_nm","UNAME","NAME","name","area_nm"];
+    const badges = [];
+    for (const z of zones) {
+      for (const k of nameKeys) { if (z[k]) { badges.push(z[k]); break; } }
+    }
+    if (badges.length) html += `<p>${badges.map(b=>`<span class="badge">${esc(b)}</span>`).join("")}</p>`;
+    html += `<details><summary style="font-size:13px;color:#666;cursor:pointer;">원본 응답 보기</summary><pre>${esc(JSON.stringify(zones,null,2))}</pre></details>`;
   } else {
-    html += `<p style="color:#888;font-size:14px;">이 필지에 대한 용도지역 정보를 가져오지 못했습니다. (도서·산간 등 데이터 미제공 지역이거나, 레이어 조회 조건을 조정해야 할 수 있습니다)</p>`;
+    html += `<p style="color:#888;font-size:14px;">이 좌표에서 용도지역 정보를 가져오지 못했습니다.</p>`;
   }
   html += `</div>`;
-
   resultArea.innerHTML = html;
 }
 
 searchBtn.addEventListener('click', async () => {
   const address = addrInput.value.trim();
   if (!address) return;
-
-  searchBtn.disabled = true;
-  resultArea.innerHTML = '';
+  searchBtn.disabled = true; resultArea.innerHTML = '';
   setStatus('loading', '조회 중입니다...');
-
   try {
     const items = await searchParcel(address);
-    if (items.length === 0) throw new Error('해당 주소의 필지를 찾을 수 없습니다.');
+    if (!items.length) throw new Error('해당 주소의 필지를 찾을 수 없습니다.');
     const parcel = items[0];
-    const point = parcel.point;
-
-    const zone = await getLandUseZone(point.x, point.y);
-
+    const zones = await getLandUseZone(parcel.point.x, parcel.point.y);
     clearStatus();
-    renderResult({ address, parcel, zone });
+    renderResult({ address, parcel, zones });
   } catch (err) {
-    setStatus('error', '조회 실패: ' + err.message + ' (브라우저 콘솔의 상세 오류를 확인해 주세요)');
+    setStatus('error', '조회 실패: ' + err.message);
     console.error(err);
-  } finally {
-    searchBtn.disabled = false;
-  }
+  } finally { searchBtn.disabled = false; }
 });
 </script>
 </body>
