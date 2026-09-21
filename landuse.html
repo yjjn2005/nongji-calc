@@ -8,7 +8,7 @@
   :root { --navy:#0F2544; --gold:#C6A15B; --bg:#F7F6F3; --border:#E0DCD3; }
   * { box-sizing:border-box; }
   body { font-family:'맑은 고딕','Malgun Gothic',sans-serif; background:var(--bg); margin:0; padding:24px 16px 60px; color:#1a1a1a; }
-  .wrap { max-width:720px; margin:0 auto; }
+  .wrap { max-width:760px; margin:0 auto; }
   h1 { color:var(--navy); font-size:22px; border-bottom:3px solid var(--gold); padding-bottom:10px; margin-bottom:20px; }
   .search-box { display:flex; gap:8px; margin-bottom:20px; }
   .search-box input { flex:1; padding:12px 14px; border:1px solid var(--border); border-radius:6px; font-size:15px; }
@@ -16,17 +16,23 @@
   .search-box button:disabled { opacity:.5; }
   .card { background:#fff; border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:16px; }
   .card h2 { font-size:16px; color:var(--navy); margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .card h3 { font-size:14px; color:var(--navy); margin:14px 0 6px; }
   table { width:100%; border-collapse:collapse; }
-  table td { padding:8px 6px; font-size:14px; vertical-align:top; }
-  table td:first-child { width:120px; color:#666; background:#FAF9F6; font-weight:600; }
+  table td, table th { padding:8px 6px; font-size:14px; vertical-align:top; text-align:left; border-bottom:1px solid #F0EDE6; }
+  table th { background:var(--navy); color:#fff; font-weight:600; font-size:13px; }
+  table.kv td:first-child { width:130px; color:#666; background:#FAF9F6; font-weight:600; }
   .badge { display:inline-block; background:var(--gold); color:#fff; padding:3px 10px; border-radius:12px; font-size:13px; margin:2px 4px 2px 0; }
+  .badge.gray { background:#8a8a8a; }
+  .big { font-size:22px; font-weight:700; color:var(--navy); }
   .status { padding:12px; border-radius:6px; font-size:14px; margin-bottom:16px; }
   .status.loading { background:#FFF7E6; color:#8A6D00; }
   .status.error { background:#FDECEC; color:#B3261E; }
   .status.hidden { display:none; }
   .note { font-size:12px; color:#888; margin-top:24px; line-height:1.6; border-top:1px solid var(--border); padding-top:12px; }
+  .small { font-size:12px; color:#888; }
   pre { background:#F2F0EA; padding:10px; border-radius:6px; font-size:12px; overflow-x:auto; white-space:pre-wrap; }
   .back { display:inline-block; margin-bottom:14px; color:var(--navy); font-size:14px; text-decoration:none; }
+  ul.list { margin:4px 0 8px; padding-left:18px; font-size:14px; line-height:1.6; }
 </style>
 </head>
 <body>
@@ -43,117 +49,214 @@
   <div id="resultArea"></div>
 
   <div class="note">
-    ※ 본 조회 결과는 브이월드(VWorld) 국가공간정보 오픈API를 이용한 참고용 정보입니다.<br>
-    ※ 법적 효력이 있는 공식 "토지이용계획확인원"이 필요한 경우 정부24(gov.kr)에서 본인인증 후 별도 발급받으셔야 합니다.<br>
-    ※ 용도지역·지구 명칭과 행위제한 내용은 실제 지자체 조례에 따라 세부 사항이 달라질 수 있어, 최종 확인은 관할 지자체(도시계획과 등)에 문의하시기 바랍니다.
+    ※ 용도지역·지구·구역은 브이월드(VWorld) 국가공간정보 오픈API, 건폐율·용적률 상한과 용도별 건축물은 「국토의 계획 및 이용에 관한 법률 시행령」 제71조·제84조·제85조 기준입니다.<br>
+    ※ 실제 적용되는 건폐율·용적률과 허용 건축물은 관할 지자체 도시계획조례(남양주시 도시계획조례 등)에 따라 법정 범위 안에서 정해지므로, 최종 확인은 지자체 도시계획과에 문의하시기 바랍니다.<br>
+    ※ 법적 효력이 있는 공식 "토지이용계획확인원"은 정부24(gov.kr)에서 본인인증 후 별도 발급받으셔야 합니다.
   </div>
 </div>
 
 <script>
 const VWORLD_KEY = "F6799A65-7960-4D2E-AA41-1BACB4EAEB1D";
-const REGULATION_PROXY_BASE = "https://nongji-calc-api.yjjn2005.workers.dev";
 
-const statusEl = document.getElementById('status');
-const resultArea = document.getElementById('resultArea');
-const searchBtn = document.getElementById('searchBtn');
-const addrInput = document.getElementById('addrInput');
+// 조회할 브이월드 레이어 목록 (실패하는 레이어는 조용히 건너뜀)
+const LAYERS = [
+  { id:"LT_C_UQ111", label:"용도지역",     group:"main" },
+  { id:"LT_C_UQ112", label:"용도지구",     group:"main" },
+  { id:"LT_C_UQ113", label:"용도구역",     group:"main" },
+  { id:"LT_C_UD801", label:"개발제한구역", group:"other" },
+  { id:"LT_C_UM000", label:"군사시설보호구역", group:"other" },
+  { id:"LT_C_UQ121", label:"도시계획시설(교통)", group:"other" },
+];
 
-function setStatus(type, msg){ statusEl.className='status '+type; statusEl.textContent=msg; }
-function clearStatus(){ statusEl.className='status hidden'; }
+// 국토계획법 시행령 §84(건폐율 상한), §85(용적률 범위)
+const ZONE_RULES = {
+  "제1종전용주거지역":{bc:50, far:"50~100"}, "제2종전용주거지역":{bc:50, far:"50~150"},
+  "제1종일반주거지역":{bc:60, far:"100~200"}, "제2종일반주거지역":{bc:60, far:"100~250"},
+  "제3종일반주거지역":{bc:50, far:"100~300"}, "준주거지역":{bc:70, far:"200~500"},
+  "중심상업지역":{bc:90, far:"200~1500"}, "일반상업지역":{bc:80, far:"200~1300"},
+  "근린상업지역":{bc:70, far:"200~900"}, "유통상업지역":{bc:80, far:"200~1100"},
+  "전용공업지역":{bc:70, far:"150~300"}, "일반공업지역":{bc:70, far:"150~350"},
+  "준공업지역":{bc:70, far:"150~400"},
+  "보전녹지지역":{bc:20, far:"50~80"}, "생산녹지지역":{bc:20, far:"50~100"}, "자연녹지지역":{bc:20, far:"50~100"},
+  "보전관리지역":{bc:20, far:"50~80"}, "생산관리지역":{bc:20, far:"50~80"}, "계획관리지역":{bc:40, far:"50~100"},
+  "농림지역":{bc:20, far:"50~80"}, "자연환경보전지역":{bc:20, far:"50~80"},
+};
 
-// ---- JSONP 호출 유틸 (브이월드는 브라우저 fetch 대신 JSONP callback 방식 지원) ----
-let jsonpSeq = 0;
-function jsonp(url, params, timeoutMs = 15000) {
-  return new Promise((resolve, reject) => {
-    const cbName = "__vworld_cb_" + (++jsonpSeq) + "_" + Date.now();
-    const script = document.createElement("script");
-    const u = new URL(url);
-    for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
-    u.searchParams.set("callback", cbName);
+// 용도별 건축물 요약 (시행령 별표 2~22 요약)
+const ZONE_BUILDINGS = {
+  "제1종일반주거지역": {
+    allow:["단독주택","공동주택(아파트 제외)","제1종 근린생활시설","교육연구시설 중 유치원·초·중·고등학교","노유자시설"],
+    cond:["제2종 근린생활시설(단란주점·안마시술소 제외)","문화 및 집회시설(공연장·관람장 제외)","종교시설","판매시설(일정 규모 이하)","의료시설(격리병원 제외)","그 밖의 교육연구시설","수련시설","운동시설","업무시설(3천㎡ 미만)","공장·창고시설(일부)","위험물저장 및 처리시설(주유소 등)","자동차관련시설(주차장·세차장)","동물 및 식물 관련 시설(일부)","야영장시설"],
+    deny:["아파트","위락시설","숙박시설","단란주점·안마시술소","공연장·관람장","격리병원"]
+  },
+  "제2종일반주거지역": {
+    allow:["단독주택","공동주택(아파트 포함)","제1종 근린생활시설","종교시설","교육연구시설 중 유치원·초·중·고등학교","노유자시설"],
+    cond:["제2종 근린생활시설(단란주점·안마시술소 제외)","문화 및 집회시설(관람장 제외)","판매시설","의료시설(격리병원 제외)","교육연구시설","수련시설","운동시설","업무시설","공장(일부)","창고시설","위험물저장 및 처리시설","자동차관련시설","동물 및 식물 관련 시설","야영장시설"],
+    deny:["위락시설","숙박시설","단란주점·안마시술소","관람장","격리병원"]
+  },
+  "제3종일반주거지역": {
+    allow:["단독주택","공동주택","제1종 근린생활시설","종교시설","교육연구시설 중 유치원·초·중·고등학교","노유자시설"],
+    cond:["제2종 근린생활시설(단란주점·안마시술소 제외)","문화 및 집회시설(관람장 제외)","판매시설","의료시설(격리병원 제외)","교육연구시설","수련시설","운동시설","업무시설","공장(일부)","창고시설","위험물저장 및 처리시설","자동차관련시설","동물 및 식물 관련 시설","야영장시설"],
+    deny:["위락시설","숙박시설","단란주점·안마시술소","관람장","격리병원"]
+  },
+  "계획관리지역": {
+    allow:["단독주택","제1종 근린생활시설(휴게음식점·제과점 제외)","제2종 근린생활시설(일부 제외)","의료시설","운동시설(운동장 제외)","창고시설(농·임·축·수산업용)","위험물저장 및 처리시설","자동차관련시설","동물 및 식물 관련 시설","교정 및 국방·군사시설","방송통신시설","발전시설","묘지관련시설","장례시설","야영장시설"],
+    cond:["공동주택(아파트 제외)","일반음식점·휴게음식점·제과점(조례로 정하는 지역)","문화 및 집회시설","종교시설","판매시설(일정 규모)","교육연구시설","노유자시설","수련시설","숙박시설(일부)","공장(일부 업종·규모)","일반 창고시설","관광휴게시설"],
+    deny:["아파트","위락시설(단란주점 등)","일부 대규모 공장·오염배출시설"]
+  },
+  "생산관리지역": {
+    allow:["단독주택","제1종 근린생활시설(일부)","교육연구시설 중 초·중·고등학교","운동시설(운동장 제외)","창고시설(농·임·축·수산업용)","동물 및 식물 관련 시설","교정 및 국방·군사시설","방송통신시설","발전시설","묘지관련시설","장례시설","야영장시설"],
+    cond:["공동주택(아파트 제외)","제2종 근린생활시설(일부)","판매시설(농수산물 관련)","의료시설","공장(농산물·수산물 가공 등 일부)","위험물저장 및 처리시설","자동차관련시설","일반 창고시설"],
+    deny:["아파트","숙박시설","위락시설","일반음식점(조례 예외 제외)","대부분의 공장"]
+  },
+  "보전관리지역": {
+    allow:["단독주택","교육연구시설 중 초·중·고등학교","교정 및 국방·군사시설","방송통신시설","발전시설","묘지관련시설","장례시설"],
+    cond:["제1종 근린생활시설(일부)","제2종 근린생활시설(일부)","종교시설","의료시설","노유자시설","창고시설(농·임·축·수산업용)","위험물저장 및 처리시설","동물 및 식물 관련 시설(축사 등 일부)","야영장시설"],
+    deny:["공동주택","숙박시설","위락시설","공장","일반 창고"]
+  },
+  "농림지역": {
+    allow:["단독주택(농어가주택)","제1종 근린생활시설(일부)","교육연구시설 중 초·중·고등학교","창고시설(농·임·축·수산업용)","동물 및 식물 관련 시설","교정 및 국방·군사시설","방송통신시설","발전시설","묘지관련시설","장례시설"],
+    cond:["제2종 근린생활시설(일부)","종교시설","의료시설","공장(농산물·임산물 가공 등 일부)","위험물저장 및 처리시설","야영장시설"],
+    deny:["일반 단독주택(농어가 외)","공동주택","숙박시설","위락시설","일반 공장·창고"]
+  },
+  "자연녹지지역": {
+    allow:["단독주택","제1종 근린생활시설","제2종 근린생활시설(일부 제외)","의료시설(종합병원·병원·치과병원·한방병원 제외)","교육연구시설(직업훈련소·학원 제외)","노유자시설","수련시설","운동시설","창고시설","동물 및 식물 관련 시설","자원순환 관련 시설","교정 및 국방·군사시설","방송통신시설","발전시설","묘지관련시설","관광휴게시설","장례시설","야영장시설"],
+    cond:["공동주택(아파트 제외)","문화 및 집회시설","종교시설","판매시설(일정 규모)","종합병원·병원 등","숙박시설(일부)","공장(일부)","위험물저장 및 처리시설","자동차관련시설"],
+    deny:["아파트","위락시설","단란주점·안마시술소","대부분의 대규모 공장"]
+  },
+  "생산녹지지역": {
+    allow:["단독주택","제1종 근린생활시설","교육연구시설 중 유치원·초·중·고등학교","노유자시설","수련시설","운동시설(운동장 제외)","창고시설(농·임·축·수산업용)","동물 및 식물 관련 시설","교정 및 국방·군사시설","방송통신시설","발전시설","묘지관련시설","장례시설","야영장시설"],
+    cond:["공동주택(아파트 제외)","제2종 근린생활시설(일부)","문화 및 집회시설(일부)","판매시설(농수산물)","의료시설","공장(농수산물 가공 등)","위험물저장 및 처리시설","자동차관련시설","일반 창고시설"],
+    deny:["아파트","숙박시설","위락시설","대부분의 공장"]
+  },
+  "보전녹지지역": {
+    allow:["교육연구시설 중 초·중·고등학교","창고시설(농·임·축·수산업용)","교정 및 국방·군사시설","방송통신시설","발전시설","묘지관련시설","장례시설"],
+    cond:["단독주택(기존 주택 증축 등)","제1종 근린생활시설(일부)","제2종 근린생활시설(일부)","종교시설","의료시설","노유자시설","위험물저장 및 처리시설","동물 및 식물 관련 시설(일부)","야영장시설"],
+    deny:["공동주택","숙박시설","위락시설","공장","일반 창고"]
+  },
+  "자연환경보전지역": {
+    allow:["단독주택(농어가주택)","교육연구시설 중 초등학교","교정 및 국방·군사시설(일부)","방송통신시설(일부)","묘지관련시설(일부)"],
+    cond:["제1종 근린생활시설(일부)","종교시설","창고시설(농·임·축·수산업용)","동물 및 식물 관련 시설(일부)","발전시설(일부)","장례시설"],
+    deny:["일반 주택","공동주택","숙박시설","위락시설","공장","일반 창고"]
+  },
+  "준주거지역": {
+    allow:["단독주택","공동주택","제1종·제2종 근린생활시설(단란주점·안마시술소 제외)","문화 및 집회시설(공연장·관람장 제외)","종교시설","판매시설","의료시설","교육연구시설","노유자시설","수련시설","운동시설","업무시설","창고시설","자동차관련시설","방송통신시설","발전시설","야영장시설"],
+    cond:["공연장·관람장","숙박시설(일부)","공장(일부)","위험물저장 및 처리시설","동물 및 식물 관련 시설"],
+    deny:["위락시설","단란주점·안마시술소"]
+  },
+  "일반상업지역": {
+    allow:["단독주택·공동주택(조례 조건)","제1종·제2종 근린생활시설","문화 및 집회시설","종교시설","판매시설","운수시설","의료시설","교육연구시설","노유자시설","수련시설","운동시설","업무시설","숙박시설","위락시설(조례 조건)","자동차관련시설","방송통신시설","야영장시설"],
+    cond:["공장(일부)","창고시설","위험물저장 및 처리시설","동물 및 식물 관련 시설"],
+    deny:["오염배출 공장 등"]
+  },
+};
 
-    const timer = setTimeout(() => {
-      cleanup();
-      reject(new Error("응답 시간 초과 (브이월드 서버가 응답하지 않습니다)"));
-    }, timeoutMs);
+const statusEl=document.getElementById('status'), resultArea=document.getElementById('resultArea'),
+      searchBtn=document.getElementById('searchBtn'), addrInput=document.getElementById('addrInput');
+function setStatus(t,m){statusEl.className='status '+t;statusEl.textContent=m;}
+function clearStatus(){statusEl.className='status hidden';}
+function esc(s){return String(s??'-').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
-    function cleanup(){
-      clearTimeout(timer);
-      delete window[cbName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-    }
-    window[cbName] = (data) => { cleanup(); resolve(data); };
-    script.onerror = () => { cleanup(); reject(new Error("스크립트 로드 실패 (네트워크 차단 또는 URL/키 오류)")); };
-    script.src = u.toString();
-    document.head.appendChild(script);
+// ---- JSONP ----
+let seq=0;
+function jsonp(url, params, timeoutMs=15000){
+  return new Promise((resolve,reject)=>{
+    const cb="__vw_"+(++seq)+"_"+Date.now(), s=document.createElement("script"), u=new URL(url);
+    for(const [k,v] of Object.entries(params)) u.searchParams.set(k,v);
+    u.searchParams.set("callback",cb);
+    const timer=setTimeout(()=>{cleanup();reject(new Error("응답 시간 초과"));},timeoutMs);
+    function cleanup(){clearTimeout(timer);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);}
+    window[cb]=d=>{cleanup();resolve(d);};
+    s.onerror=()=>{cleanup();reject(new Error("스크립트 로드 실패"));};
+    s.src=u.toString(); document.head.appendChild(s);
   });
 }
 
-// 1) 지번주소 -> 필지 검색 (PNU, 좌표)
-async function searchParcel(address) {
-  const data = await jsonp("https://api.vworld.kr/req/search", {
-    service: "search", request: "search", version: "2.0", crs: "EPSG:4326",
-    query: address, type: "address", category: "PARCEL", format: "json", key: VWORLD_KEY
-  });
-  if (data.response?.status !== "OK") {
-    throw new Error("주소를 찾을 수 없습니다: " + (data.response?.status || "알 수 없는 오류") +
-      (data.response?.error ? " - " + JSON.stringify(data.response.error) : ""));
-  }
-  return data.response.result?.items || [];
+async function searchParcel(address){
+  const d=await jsonp("https://api.vworld.kr/req/search",{service:"search",request:"search",version:"2.0",crs:"EPSG:4326",query:address,type:"address",category:"PARCEL",format:"json",key:VWORLD_KEY});
+  if(d.response?.status!=="OK") throw new Error("주소를 찾을 수 없습니다: "+(d.response?.status||"오류"));
+  return d.response.result?.items||[];
+}
+async function getLayer(layerId,x,y){
+  try{
+    const d=await jsonp("https://api.vworld.kr/req/data",{service:"data",request:"GetFeature",data:layerId,key:VWORLD_KEY,format:"json",crs:"EPSG:4326",geomFilter:`POINT(${x} ${y})`,geometry:"false"},8000);
+    const f=d.response?.result?.featureCollection?.features;
+    return (f&&f.length)?f.map(v=>v.properties):[];
+  }catch(e){ return []; }
 }
 
-// 2) 좌표 -> 용도지역지구 (LT_C_UQ111 레이어, 속성만)
-async function getLandUseZone(x, y) {
-  const data = await jsonp("https://api.vworld.kr/req/data", {
-    service: "data", request: "GetFeature", data: "LT_C_UQ111", key: VWORLD_KEY,
-    format: "json", crs: "EPSG:4326", geomFilter: `POINT(${x} ${y})`, geometry: "false"
-  });
-  const features = data.response?.result?.featureCollection?.features;
-  return (features && features.length > 0) ? features.map(f => f.properties) : null;
-}
+function zoneName(p){ return p.uname||p.prposArea1Nm||p.name||p.NAME||JSON.stringify(p); }
 
-function esc(s){ return String(s ?? '-').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-function renderResult({ address, parcel, zones }) {
-  let html = `<div class="card"><h2>기본 정보</h2><table>
+function render({address,parcel,layerResults}){
+  let html=`<div class="card"><h2>기본 정보</h2><table class="kv">
     <tr><td>소재지</td><td>${esc(address)}</td></tr>
-    <tr><td>검색 결과</td><td>${esc(parcel.title)}</td></tr>
     <tr><td>PNU</td><td>${esc(parcel.id)}</td></tr>
     <tr><td>좌표(경도, 위도)</td><td>${esc(parcel.point?.x)}, ${esc(parcel.point?.y)}</td></tr>
   </table></div>`;
 
-  html += `<div class="card"><h2>용도지역·지구 등 지정 여부</h2>`;
-  if (zones && zones.length) {
-    // 흔한 필드명 후보들을 먼저 배지로 시도, 그 외는 원본 표시
-    const nameKeys = ["uname","prposArea1Nm","prpos_area_1_nm","UNAME","NAME","name","area_nm"];
-    const badges = [];
-    for (const z of zones) {
-      for (const k of nameKeys) { if (z[k]) { badges.push(z[k]); break; } }
-    }
-    if (badges.length) html += `<p>${badges.map(b=>`<span class="badge">${esc(b)}</span>`).join("")}</p>`;
-    html += `<details><summary style="font-size:13px;color:#666;cursor:pointer;">원본 응답 보기</summary><pre>${esc(JSON.stringify(zones,null,2))}</pre></details>`;
-  } else {
-    html += `<p style="color:#888;font-size:14px;">이 좌표에서 용도지역 정보를 가져오지 못했습니다.</p>`;
+  // 지역·지구·구역 (토지이용계획확인원의 「국토계획법」란)
+  html+=`<div class="card"><h2>「국토의 계획 및 이용에 관한 법률」에 따른 지역·지구 등</h2><table class="kv">`;
+  const mainZones=[];
+  for(const L of LAYERS.filter(l=>l.group==="main")){
+    const rows=layerResults[L.id]||[];
+    const names=[...new Set(rows.map(zoneName))];
+    if(L.id==="LT_C_UQ111") mainZones.push(...names);
+    html+=`<tr><td>${L.label}</td><td>${names.length?names.map(n=>`<span class="badge">${esc(n)}</span>`).join(""):'<span class="badge gray">해당 없음</span>'}</td></tr>`;
   }
-  html += `</div>`;
-  resultArea.innerHTML = html;
+  html+=`</table></div>`;
+
+  // 다른 법령 지역·지구
+  html+=`<div class="card"><h2>다른 법령 등에 따른 지역·지구 등</h2><table class="kv">`;
+  let anyOther=false;
+  for(const L of LAYERS.filter(l=>l.group==="other")){
+    const rows=layerResults[L.id]||[];
+    if(!rows.length) continue;
+    anyOther=true;
+    const names=[...new Set(rows.map(zoneName))];
+    html+=`<tr><td>${L.label}</td><td>${names.map(n=>`<span class="badge">${esc(n)}</span>`).join("")}</td></tr>`;
+  }
+  if(!anyOther) html+=`<tr><td colspan="2" class="small">조회된 레이어 범위(개발제한구역·군사시설보호구역·도시계획시설)에서는 해당 없음. 농업진흥구역·수도권정비권역 등은 정부24 확인원으로 확인하세요.</td></tr>`;
+  html+=`</table></div>`;
+
+  // 건폐율·용적률 + 용도별 건축물 (용도지역별)
+  for(const z of mainZones){
+    const r=ZONE_RULES[z], b=ZONE_BUILDINGS[z];
+    html+=`<div class="card"><h2>${esc(z)} — 건폐율·용적률 및 용도별 건축물</h2>`;
+    if(r){
+      html+=`<table><tr><th>구분</th><th>법정 상한(국토계획법 시행령)</th><th>비고</th></tr>
+        <tr><td>건폐율</td><td class="big">${r.bc}% 이하</td><td class="small">시행령 §84</td></tr>
+        <tr><td>용적률</td><td class="big">${esc(r.far)}% 이하</td><td class="small">시행령 §85 (실제 적용값은 남양주시 도시계획조례로 확정)</td></tr></table>`;
+    } else {
+      html+=`<p class="small">이 용도지역의 법정 상한 표가 준비되어 있지 않습니다.</p>`;
+    }
+    if(b){
+      html+=`<h3>① 건축할 수 있는 건축물</h3><ul class="list">${b.allow.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>`;
+      html+=`<h3>② 도시·군계획조례로 정하는 바에 따라 건축할 수 있는 건축물</h3><ul class="list">${b.cond.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>`;
+      html+=`<h3>③ 건축할 수 없는 건축물(대표)</h3><ul class="list">${b.deny.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>`;
+      html+=`<p class="small">※ 시행령 별표 요약. 세부 규모·업종 제한과 조례 허용 여부는 남양주시 도시계획조례 및 관할 부서 확인 필요.</p>`;
+    }
+    html+=`</div>`;
+  }
+
+  // 원본
+  html+=`<div class="card"><details><summary class="small" style="cursor:pointer">브이월드 원본 응답 보기</summary><pre>${esc(JSON.stringify(layerResults,null,2))}</pre></details></div>`;
+  resultArea.innerHTML=html;
 }
 
-searchBtn.addEventListener('click', async () => {
-  const address = addrInput.value.trim();
-  if (!address) return;
-  searchBtn.disabled = true; resultArea.innerHTML = '';
-  setStatus('loading', '조회 중입니다...');
-  try {
-    const items = await searchParcel(address);
-    if (!items.length) throw new Error('해당 주소의 필지를 찾을 수 없습니다.');
-    const parcel = items[0];
-    const zones = await getLandUseZone(parcel.point.x, parcel.point.y);
-    clearStatus();
-    renderResult({ address, parcel, zones });
-  } catch (err) {
-    setStatus('error', '조회 실패: ' + err.message);
-    console.error(err);
-  } finally { searchBtn.disabled = false; }
+searchBtn.addEventListener('click', async ()=>{
+  const address=addrInput.value.trim(); if(!address) return;
+  searchBtn.disabled=true; resultArea.innerHTML='';
+  try{
+    setStatus('loading','필지 검색 중...');
+    const items=await searchParcel(address);
+    if(!items.length) throw new Error('해당 주소의 필지를 찾을 수 없습니다.');
+    const parcel=items[0], {x,y}=parcel.point;
+    setStatus('loading','지역·지구 조회 중... (여러 레이어를 순차 조회합니다)');
+    const layerResults={};
+    for(const L of LAYERS){ layerResults[L.id]=await getLayer(L.id,x,y); }
+    clearStatus(); render({address,parcel,layerResults});
+  }catch(err){ setStatus('error','조회 실패: '+err.message); console.error(err); }
+  finally{ searchBtn.disabled=false; }
 });
 </script>
 </body>
